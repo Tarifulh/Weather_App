@@ -1,12 +1,10 @@
+from flask import Flask, jsonify, request
 import requests
 
-while True:
- city = input("Enter city name: ").lower()
+app = Flask(__name__)
 
- if city.lower() == "q":
-   print("Goodbye!")
-   break
-
+def get_weather(city):
+ 
  # API 1: CITY - COORDINATES
  response = requests.get(
      "https://geocoding-api.open-meteo.com/v1/search",
@@ -38,14 +36,6 @@ while True:
 
  current = weather_data["current"]
 
- temperature = current["temperature_2m"]
- humidity = current["relative_humidity_2m"]
- feels_like = current["apparent_temperature"]
- wind_speed = current["wind_speed_10m"]
- precipitation = current["precipitation"]
- snowfall = current["snowfall"]
- visibility = current["visibility"]
- weather_code = current["weather_code"]
  weather_conditions = {
    0: "Clear sky",
    1: "Mainly clear",
@@ -69,16 +59,35 @@ while True:
    96: "Thunderstorm with slight hail",
    99: "Thunderstorm with heavy hail"
  }
+ condition = weather_conditions.get(current["weather_code"], "Unknown")
+ # 4. RETURN THE DATA
+ return {
+     "city": city,
+     "temperature": current["temperature_2m"],
+     "humidity": current["relative_humidity_2m"],
+     "feels_like": current["apparent_temperature"],
+     "wind_speed": current["wind_speed_10m"],
+     "precipitation": current["precipitation"],
+     "snowfall": current["snowfall"],
+     "visibility": current["visibility"],
+     "condition": condition
+ }
 
- print()
- print(f"Weather in {city}")
- print(f"Temperature: {temperature}^C")
- print(f"Feels like: {feels_like}^C")
- print(f"Humidity: {humidity}%")
- print(f"Wind speed: {wind_speed}km/h")
- print(f"precipitation: {precipitation}mm")
- print(f"Snowfall: {snowfall}mm")
- print(f"Visibility: {visibility}")
- print()
- condition = weather_conditions.get(weather_code, "Unknown")
- print(f"Condition: {condition}")
+
+@app.route("/weather")
+def weather():
+
+ city = request.args.get("city")
+
+ if not city:
+     return {"error": "City name is required"}, 400
+
+ weather_data = get_weather(city)
+
+ if weather_data is None:
+     return {"error": "City not found"}, 404
+
+ return jsonify(weather_data)
+
+
+app.run(debug=True)
