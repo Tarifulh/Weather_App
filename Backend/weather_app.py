@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
+CORS(app)
 
 def get_weather(city):
  
@@ -16,6 +18,7 @@ def get_weather(city):
  data = response.json()
  if not data.get("results"): 
     print("City not found. Try nearby!")
+    return None
  else:
 
   latitude = data["results"][0]["latitude"]
