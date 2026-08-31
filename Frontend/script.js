@@ -8,8 +8,14 @@ function searchWeather() {
 
     let url = "http://127.0.0.1:5000/weather?city=" + encodeURI(city);
 
+    document.getElementById("conditions").textContent = "Loading...";
+
     fetch(url)
         .then(response => {
+            if (!response.ok) {
+                throw new Error("Weather request failed")
+            }
+            
             return response.json();
         })
         .then(data => {
@@ -22,6 +28,11 @@ function searchWeather() {
             document.getElementById("precipitations").textContent = data.precipitation;
             document.getElementById("snowfalls").textContent = data.snowfall;
             document.getElementById("conditions").textContent = data.condition;
+
+        })
+        .catch(error => {
+            console.log(error);
+            document.getElementById("conditions").textContent = "Unable to get weather";
 
         });
 }
@@ -36,6 +47,6 @@ cityInput.addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
         searchWeather();
-    }
+    }           
 
 });
